@@ -46,6 +46,11 @@ const [dispatcher] = useDispatcher({
         Promise.resolve( // <-------------------------------------------
           oldCount => oldCount + countBy // <- new state (async, updater)
         ), // <---------------------------------------------------------
+  
+  reload: // <-------------------------------- dispatcher method name
+    () => // <-------------------------------- dispatcher method args (none)
+      async () =>   // <---------------------- reducer props (omitted)
+        await fetchFromServer(), // <--------- async fetch
 });
 
 return (
