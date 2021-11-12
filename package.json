@@ -7,6 +7,12 @@
     "dist",
     "src"
   ],
+  "keywords": [
+    "react",
+    "hooks",
+    "useReducer",
+    "typescript"
+  ],
   "engines": {
     "node": ">=10"
   },
