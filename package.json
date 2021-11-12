@@ -16,6 +16,7 @@
   "engines": {
     "node": ">=10"
   },
+  "repository": "joeflateau/strong-reducer",
   "scripts": {
     "start": "dts watch",
     "build": "dts build",
