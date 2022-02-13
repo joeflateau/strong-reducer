@@ -22,9 +22,7 @@ const [countBy, setCountBy] = React.useState(5);
 const [count, useDispatcher] = useStrongReducerWithProps(
   0, // <------------------------------------- initial state
   countBy // <-------------------------------- reducer props
-);
-
-const [dispatcher] = useDispatcher({
+)({
   increase: // <------------------------------ dispatcher method name
     () =>  // <------------------------------- dispatcher method args (none)
       countBy => // <------------------------- reducer props

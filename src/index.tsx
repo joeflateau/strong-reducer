@@ -6,7 +6,7 @@ type ValueOrPromise<T> = T | Promise<T>;
 type ReducerMap<
   TState,
   TProps,
-  TReducers extends ReducerMap<TState, TProps, TReducers>,
+  TReducers extends ReducerMap<TState, TProps, TReducers>
 > = {
   [K in keyof TReducers]: Reducer<TState, TProps>;
 };
@@ -20,7 +20,7 @@ type StateStateSetterOrVoid<TState> = TState | ((state: TState) => TState);
 type DispatcherMap<
   TState,
   TProps,
-  TReducers extends ReducerMap<TState, TProps, TReducers>,
+  TReducers extends ReducerMap<TState, TProps, TReducers>
 > = {
   [K in keyof TReducers]: Dispatcher<TState, TProps, TReducers, K>;
 };
@@ -29,7 +29,7 @@ type Dispatcher<
   TState,
   TProps,
   TReducers extends ReducerMap<TState, TProps, TReducers>,
-  TReducerKey extends keyof TReducers,
+  TReducerKey extends keyof TReducers
 > = (...args: Parameters<TReducers[TReducerKey]>) => Promise<void>;
 
 export function useStrongReducer<TState>(initialState: TState) {
@@ -47,33 +47,30 @@ export function useStrongReducerWithProps<TState, TProps>(
     refProps.current = props;
   }, [props]);
 
-  return [
-    state,
-    function useDispatcher<
-      TReducers extends ReducerMap<TState, TProps, TReducers>,
-      TDispatchers extends DispatcherMap<TState, TProps, TReducers>,
-    >(reducers: TReducers): [dispatch: TDispatchers] {
-      const [dispatcher] = useState(
-        entries(reducers).reduce(
-          (acc, [name, reducerDispatcherArgs]) => ({
-            ...acc,
-            [name]: async (...params: any[]) => {
-              const reducerDispatcherAndPropsArgs = reducerDispatcherArgs(
-                ...params,
-              );
-              const stateOrStateSetter = await reducerDispatcherAndPropsArgs(
-                refProps.current,
-              );
-              if (typeof stateOrStateSetter !== "undefined") {
-                setState(stateOrStateSetter);
-              }
-            },
-          }),
-          {} as TDispatchers,
-        ),
-      );
+  return function useDispatcher<
+    TReducers extends ReducerMap<TState, TProps, TReducers>,
+    TDispatchers extends DispatcherMap<TState, TProps, TReducers>
+  >(reducers: TReducers): [TState, TDispatchers] {
+    const [dispatcher] = useState(
+      entries(reducers).reduce(
+        (acc, [name, reducerDispatcherArgs]) => ({
+          ...acc,
+          [name]: async (...params: any[]) => {
+            const reducerDispatcherAndPropsArgs = reducerDispatcherArgs(
+              ...params,
+            );
+            const stateOrStateSetter = await reducerDispatcherAndPropsArgs(
+              refProps.current,
+            );
+            if (typeof stateOrStateSetter !== "undefined") {
+              setState(stateOrStateSetter);
+            }
+          },
+        }),
+        {} as TDispatchers,
+      ),
+    );
 
-      return [dispatcher];
-    },
-  ] as const;
+    return [state, dispatcher];
+  };
 }
