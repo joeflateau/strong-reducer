@@ -11,14 +11,14 @@ describe("it", () => {
         0,
         countBy,
       )({
-        increase: () => countBy => count => count + countBy,
+        increase: () => (countBy) => (count) => count + countBy,
 
         set: (newCount: number) => () => newCount,
 
         setAsync: (newCount: number) => () => Promise.resolve(newCount),
 
-        increaseAsync: () => countBy =>
-          Promise.resolve(oldCount => oldCount + countBy),
+        increaseAsync: () => (countBy) =>
+          Promise.resolve((oldCount) => oldCount + countBy),
       });
 
       return (
@@ -26,7 +26,7 @@ describe("it", () => {
           <div>{count}</div>
           <input
             type="number"
-            onChange={ev => setCountBy(Number(ev.target.value))}
+            onChange={(ev) => setCountBy(Number(ev.target.value))}
           />
           <button onClick={dispatcher.increase}>Increase</button>
           <button onClick={() => dispatcher.set(10)}>Set to 10</button>
@@ -51,8 +51,8 @@ describe("it", () => {
         0,
         countBy,
       )({
-        increase: () => countBy => count => count + countBy,
-        decrease: () => countBy => count => count - countBy,
+        increase: () => (countBy) => (count) => count + countBy,
+        decrease: () => (countBy) => (count) => count - countBy,
         set: (value: number) => () => value,
         setWithUpdater: (value: number) => () => () => value,
         setAsync: (value: number) => () => Promise.resolve(value),
@@ -66,7 +66,7 @@ describe("it", () => {
           <div>{count}</div>
           <input
             type="number"
-            onChange={ev => setCountBy(Number(ev.target.value))}
+            onChange={(ev) => setCountBy(Number(ev.target.value))}
           />
           <button onClick={dispatcher.increase}>Increase</button>
           <button onClick={dispatcher.decrease}>Decrease</button>
