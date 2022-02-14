@@ -32,12 +32,14 @@ type Dispatcher<
   TReducerKey extends keyof TReducers,
 > = (...args: Parameters<TReducers[TReducerKey]>) => Promise<void>;
 
-export function useStrongReducer<TState>(initialState: TState) {
+export function useStrongReducer<TState>(
+  initialState: TState | (() => TState),
+) {
   return useStrongReducerWithProps(initialState, {});
 }
 
 export function useStrongReducerWithProps<TState, TProps>(
-  initialState: TState,
+  initialState: TState | (() => TState),
   props: TProps,
 ) {
   const [state, setState] = useState(initialState);
