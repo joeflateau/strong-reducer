@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { entries } from "./entries";
 
 type ValueOrPromise<T> = T | Promise<T>;
@@ -13,7 +13,10 @@ type ReducerMap<
 
 type Reducer<TState, TProps> = (
   ...args: any[]
-) => (props: TProps) => ValueOrPromise<StateStateSetterOrVoid<TState> | void>;
+) => (
+  props: TProps,
+  state: TState,
+) => ValueOrPromise<StateStateSetterOrVoid<TState> | void>;
 
 type StateStateSetterOrVoid<TState> = TState | ((state: TState) => TState);
 
@@ -43,11 +46,11 @@ export function useStrongReducerWithProps<TState, TProps>(
   props: TProps,
 ) {
   const [state, setState] = useState(initialState);
-  const refProps = useRef<TProps>(null!);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-  useEffect(() => {
-    refProps.current = props;
-  }, [props]);
+  const refProps = useRef<TProps>(null!);
+  refProps.current = props;
 
   return function useDispatcher<
     TReducers extends ReducerMap<TState, TProps, TReducers>,
@@ -63,6 +66,7 @@ export function useStrongReducerWithProps<TState, TProps>(
             );
             const stateOrStateSetter = await reducerDispatcherAndPropsArgs(
               refProps.current,
+              stateRef.current,
             );
             if (typeof stateOrStateSetter !== "undefined") {
               setState(stateOrStateSetter);
