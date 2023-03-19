@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { entries } from "./entries";
 
-type ValueOrPromise<T> = T | Promise<T>;
+type ValuePromiseOrIterable<T> = T | Promise<T> | AsyncIterable<T>;
 
 type ReducerMap<
   TState,
@@ -16,7 +16,7 @@ type Reducer<TState, TProps> = (
 ) => (
   props: TProps,
   state: TState,
-) => ValueOrPromise<StateStateSetterOrVoid<TState> | void>;
+) => ValuePromiseOrIterable<StateStateSetterOrVoid<TState> | void>;
 
 type StateStateSetterOrVoid<TState> = TState | ((state: TState) => TState);
 
@@ -64,12 +64,14 @@ export function useStrongReducerWithProps<TState, TProps>(
             const reducerDispatcherAndPropsArgs = reducerDispatcherArgs(
               ...params,
             );
-            const stateOrStateSetter = await reducerDispatcherAndPropsArgs(
+            const stateIterable = reducerDispatcherAndPropsArgs(
               refProps.current,
               stateRef.current,
             );
-            if (typeof stateOrStateSetter !== "undefined") {
-              setState(stateOrStateSetter);
+            for await (const state of asyncIterable(stateIterable)) {
+              if (typeof state !== "undefined") {
+                setState(state);
+              }
             }
           },
         }),
@@ -79,4 +81,13 @@ export function useStrongReducerWithProps<TState, TProps>(
 
     return [state, dispatcher];
   };
+}
+
+async function* asyncIterable<T>(
+  input: ValuePromiseOrIterable<T>,
+): AsyncIterable<T> {
+  if (input && typeof input === "object" && Symbol.asyncIterator in input) {
+    return input;
+  }
+  yield await input;
 }

@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { useStrongReducerWithProps } from "../src";
+import { useStrongReducer, useStrongReducerWithProps } from "../src";
 
 describe("it", () => {
   it("most basic example", () => {
@@ -80,6 +80,44 @@ describe("it", () => {
           <button onClick={() => dispatcher.setAsyncWithUpdater(10)}>
             Set with async updater
           </button>
+        </>
+      );
+    }
+
+    const div = document.createElement("div");
+    ReactDOM.render(<App />, div);
+    ReactDOM.unmountComponentAtNode(div);
+  });
+  it("should async derrive state from state", async () => {
+    function App() {
+      async function sendValue(value: string | null) {
+        await Promise.resolve(value);
+      }
+
+      const [{ state, value }, { update, submit }] = useStrongReducer({
+        state: "idle",
+        value: "",
+      })({
+        update: (value: string) => (_, state) => ({ ...state, value }),
+        submit: () =>
+          async function* (_, state) {
+            yield (state = { ...state, state: "submitting" });
+            try {
+              await sendValue(state.value);
+              yield (state = { ...state, state: "submitted" });
+            } catch (err) {
+              yield (state = { ...state, state: "error" });
+            }
+          },
+      });
+
+      return (
+        <>
+          <div>
+            {state} {value}
+          </div>
+          <input onChange={(ev) => update(ev.target.value)} />
+          <button onClick={() => submit()}>Submit</button>
         </>
       );
     }
