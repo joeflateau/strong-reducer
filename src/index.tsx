@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
+import { asyncIterable } from "./asyncIterable";
 import { entries } from "./entries";
 
-type ValuePromiseOrIterable<T> = T | Promise<T> | AsyncIterable<T>;
+export type AsyncIterableInput<T> = T | Promise<T> | AsyncIterable<T>;
 
 type ReducerMap<
   TState,
@@ -16,7 +17,7 @@ type Reducer<TState, TProps> = (
 ) => (
   props: TProps,
   state: TState,
-) => ValuePromiseOrIterable<StateStateSetterOrVoid<TState> | void>;
+) => AsyncIterableInput<StateStateSetterOrVoid<TState> | void>;
 
 type StateStateSetterOrVoid<TState> = TState | ((state: TState) => TState);
 
@@ -81,13 +82,4 @@ export function useStrongReducerWithProps<TState, TProps>(
 
     return [state, dispatcher];
   };
-}
-
-async function* asyncIterable<T>(
-  input: ValuePromiseOrIterable<T>,
-): AsyncIterable<T> {
-  if (input && typeof input === "object" && Symbol.asyncIterator in input) {
-    return input;
-  }
-  yield await input;
 }
