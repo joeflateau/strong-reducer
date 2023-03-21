@@ -16,7 +16,7 @@ type Reducer<TState, TProps> = (
   ...args: any[]
 ) => (
   props: TProps,
-  state: TState,
+  dispatch: Dispatch<TState, TProps>,
 ) => AsyncIterableInput<StateStateSetterOrVoid<TState> | void>;
 
 type StateStateSetterOrVoid<TState> = TState | ((state: TState) => TState);
@@ -35,6 +35,12 @@ type Dispatcher<
   TReducers extends ReducerMap<TState, TProps, TReducers>,
   TReducerKey extends keyof TReducers,
 > = (...args: Parameters<TReducers[TReducerKey]>) => Promise<void>;
+
+type Dispatch<TState, TProps> = {
+  state: TState;
+  props: TProps;
+  abort: AbortController;
+};
 
 export function useStrongReducer<TState>(
   initialState: TState | (() => TState),
@@ -57,19 +63,34 @@ export function useStrongReducerWithProps<TState, TProps>(
     TReducers extends ReducerMap<TState, TProps, TReducers>,
     TDispatchers extends DispatcherMap<TState, TProps, TReducers>,
   >(reducers: TReducers): [TState, TDispatchers] {
-    const [dispatcher] = useState(
+    const dispatchRef = useRef<Dispatch<TState, TProps> | null>(null);
+
+    const [dispatcher] = useState(() =>
       entries(reducers).reduce(
         (acc, [name, reducerDispatcherArgs]) => ({
           ...acc,
           [name]: async (...params: any[]) => {
+            dispatchRef.current?.abort.abort();
+
+            const dispatch = (dispatchRef.current = {
+              props: refProps.current,
+              state: stateRef.current,
+              abort: new AbortController(),
+            });
+
             const reducerDispatcherAndPropsArgs = reducerDispatcherArgs(
               ...params,
             );
+
             const stateIterable = reducerDispatcherAndPropsArgs(
-              refProps.current,
-              stateRef.current,
+              dispatch.props,
+              dispatch,
             );
+
             for await (const state of asyncIterable(stateIterable)) {
+              if (dispatch.abort.signal.aborted) {
+                return;
+              }
               if (typeof state !== "undefined") {
                 setState(state);
               }

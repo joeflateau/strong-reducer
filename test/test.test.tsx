@@ -98,9 +98,11 @@ describe("it", () => {
         state: "idle",
         value: "",
       })({
-        update: (value: string) => (_, state) => ({ ...state, value }),
+        update:
+          (value: string) =>
+          (_, { state }) => ({ ...state, value }),
         submit: () =>
-          async function* (_, state) {
+          async function* (_, { state }) {
             yield (state = { ...state, state: "submitting" });
             try {
               await sendValue(state.value);
