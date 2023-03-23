@@ -34,7 +34,7 @@ const [state, { submit }] = useStrongReducer<States>("idle")({
 // it will not revert to idle 700ms after the FIRST click if there were subsequent clicks
 // it will only revert back to idle 700ms after the most recent click
 return (
-  <button onClick={() => copy(someValue)}>
+  <button onClick={() => submit(someValue)}>
     {
       {
         idle: "Submit",
