@@ -89,7 +89,7 @@ export function useStrongReducerWithProps<TState, TProps>(
 
             for await (const state of asyncIterable(stateIterable)) {
               if (dispatch.abort.signal.aborted) {
-                return;
+                continue; // run the async iterable to completion but ignore the return values
               }
               if (typeof state !== "undefined") {
                 setState(state);
