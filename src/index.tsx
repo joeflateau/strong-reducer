@@ -65,9 +65,12 @@ export function useStrongReducerWithProps<TState, TProps>(
   >(reducers: TReducers): [TState, TDispatchers] {
     const dispatchRef = useRef<Dispatch<TState, TProps> | null>(null);
 
+    const reducersRef = useRef(reducers);
+    reducersRef.current = reducers;
+
     const [dispatcher] = useState(() =>
       entries(reducers).reduce(
-        (acc, [name, reducerDispatcherArgs]) => ({
+        (acc, [name]) => ({
           ...acc,
           [name]: async (...params: any[]) => {
             dispatchRef.current?.abort.abort();
@@ -77,6 +80,8 @@ export function useStrongReducerWithProps<TState, TProps>(
               state: stateRef.current,
               abort: new AbortController(),
             });
+
+            const reducerDispatcherArgs = reducersRef.current[name];
 
             const reducerDispatcherAndPropsArgs = reducerDispatcherArgs(
               ...params,
@@ -89,7 +94,8 @@ export function useStrongReducerWithProps<TState, TProps>(
 
             for await (const state of asyncIterable(stateIterable)) {
               if (dispatch.abort.signal.aborted) {
-                continue; // run the async iterable to completion but ignore the return values
+                // run the async iterable to completion but ignore the yielded values
+                continue;
               }
               if (typeof state !== "undefined") {
                 setState(state);
