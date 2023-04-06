@@ -66,78 +66,53 @@ const [countBy, setCountBy] = React.useState(5);
 
 const [count, useDispatcher] = useStrongReducerWithProps(
   0, // <------------------------------------- initial state
-  countBy, // <-------------------------------- reducer props
+  countBy // <-------------------------------- reducer props
 )({
-  // <------------------------------ dispatcher method name
-  increase:
-    () =>
-    // <------------------------------- dispatcher method args (none)
-    (
-      countBy, // <------------------------- reducer props
-    ) =>
-    (count) =>
-      count + countBy, // <-------- state updater
-
-  // <----------------------------------- dispatcher method name
-  set:
-    (
-      newCount: number, // <---------------- dispatcher method args
-    ) =>
-    () =>
-      // <------------------------------ reducer props (omitted)
-      newCount, // <------------------------ new state
-
-  // <------------------------------ dispatcher method name
-  setAsync:
-    (
-      newCount: number, // <---------------- dispatcher method args
-    ) =>
-    () =>
-      // <---------------------------- reducer props (omitted)
-      Promise.resolve(newCount), // <------- new state (async)
-
-  // <------------------------- dispatcher method name
-  increaseAsync:
-    () =>
-    // <-------------------------------- dispatcher method args (none)
-    (
-      countBy, // <----------------------- reducer props
-    ) =>
-      Promise.resolve(
-        // <-------------------------------------------
-        (oldCount) => oldCount + countBy, // <- new state (async, updater)
-      ), // <---------------------------------------------------------
-
-  // <-------------------------------- dispatcher method name
-  reload:
-    () =>
-    // <-------------------------------- dispatcher method args (none)
-    async () =>
-      // <---------------------- reducer props (omitted)
-      await fetchFromServer(), // <--------- async fetch
-
-  // <-------------------------- dispatcher method name
-  setAsyncIter: () =>
-    // <-------------------------------- dispatcher method args
-    async function* (
-      props,
-      dispatch, // <------------------------- dispatch: { props, state, abort }
-    ) {
-      yield 1; // <------------------------- new state (async)
-      await sleep(500);
-      yield 2; // <------------------------- new state (async)
-      await sleep(500);
-      yield 3; // <------------------------- new state (async)
-    },
+  increase: // <------------------------------ dispatcher method name
+    () =>  // <------------------------------- dispatcher method args (none)
+      countBy => // <------------------------- reducer props
+        count => count + countBy, // <-------- state updater
+  
+  set: // <----------------------------------- dispatcher method name
+    (newCount: number) => // <---------------- dispatcher method args
+      () => // <------------------------------ reducer props (omitted)
+        newCount, // <------------------------ new state
+  
+  setAsync: // <------------------------------ dispatcher method name
+    (newCount: number) => // <---------------- dispatcher method args
+      () =>   // <---------------------------- reducer props (omitted)
+        Promise.resolve(newCount), // <------- new state (async)
+  
+  increaseAsync: // <------------------------- dispatcher method name
+    () => // <-------------------------------- dispatcher method args (none)
+      countBy =>   // <----------------------- reducer props
+        Promise.resolve( // <-------------------------------------------
+          oldCount => oldCount + countBy // <- new state (async, updater)
+        ), // <---------------------------------------------------------
+  
+  reload: // <-------------------------------- dispatcher method name
+    () => // <-------------------------------- dispatcher method args (none)
+      async () =>   // <---------------------- reducer props (omitted)
+        await fetchFromServer(), // <--------- async fetch
+  
+  setAsyncIter: // <-------------------------- dispatcher method name
+    () => // <-------------------------------- dispatcher method args
+      async function* (
+        props,
+        dispatch // <------------------------- dispatch: { props, state, abort }
+      ) {
+        yield 1; // <------------------------- new state (async)
+        await sleep(500);
+        yield 2; // <------------------------- new state (async)
+        await sleep(500);
+        yield 3; // <------------------------- new state (async)
+      },
 });
 
 return (
   <>
-    <div>{count}</div>
-    <input
-      type="number"
-      onChange={(ev) => setCountBy(Number(ev.target.value))}
-    />
+    <div>{ count }</div>
+    <input type="number" onChange={ev => setCountBy(Number(ev.target.value))} />
     <button onClick={dispatcher.increase}>Increase</button>
     <button onClick={() => dispatcher.set(10)}>Set to 10</button>
     <button onClick={() => dispatcher.setAsync(10)}>Set to 10 async</button>
