@@ -92,13 +92,21 @@ export function useStrongReducerWithProps<TState, TProps>(
               dispatch,
             );
 
-            for await (const state of asyncIterable(stateIterable)) {
-              if (dispatch.abort.signal.aborted) {
-                // run the async iterable to completion but ignore the yielded values
-                continue;
+            // if stateIterable is a promise or async iterable, iterate it
+            if (isPromise(stateIterable) || isAsyncIterable(stateIterable)) {
+              for await (const state of asyncIterable(stateIterable)) {
+                if (dispatch.abort.signal.aborted) {
+                  // run the async iterable to completion but ignore the yielded values
+                  continue;
+                }
+                if (typeof state !== "undefined") {
+                  setState(state);
+                }
               }
-              if (typeof state !== "undefined") {
-                setState(state);
+            } else {
+              // otherwise handle it synchronously
+              if (typeof stateIterable !== "undefined") {
+                setState(stateIterable);
               }
             }
           },
@@ -109,4 +117,16 @@ export function useStrongReducerWithProps<TState, TProps>(
 
     return [state, dispatcher];
   };
+}
+
+function isPromise<T>(value: AsyncIterableInput<T>): value is Promise<T> {
+  return value instanceof Promise;
+}
+
+function isAsyncIterable<T>(
+  value: AsyncIterableInput<T>,
+): value is AsyncIterable<T> {
+  return (
+    value != null && typeof value === "object" && Symbol.asyncIterator in value
+  );
 }
